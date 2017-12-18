@@ -13,7 +13,6 @@ last update: 16122017
 #include <stdio.h>
 #include <iostream>
 #include <ctime>
-#include <cmath> // std::abs
 #include <math.h>
 
 #include <vector>
@@ -209,9 +208,8 @@ void calc_new_pos(bool forward)
 
 int turtle_rotate(int degrees)
 {
-
 	if (degrees < 0)
-		degrees = 360 - (std::abs(degrees) % 360);
+		degrees = 360 - (abs(degrees) % 360);
 	else
 		degrees = degrees % 360;
 
