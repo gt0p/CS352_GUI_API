@@ -1,8 +1,3 @@
-/*
-    Course: CS-352
-    Author: Giorgos Topsis
-*/
-
 #include <string>
 using namespace ::std;
 
@@ -70,10 +65,10 @@ class Label : public Shape
 };
 
 // Rotate turtle by d degrees relatively to current turtle direction
-int turtle_rotate(int d);
+void turtle_rotate(int d);
 
 // Draw circle with center the current position of the turtle and radius r
-int turtle_draw_circle(unsigned r);
+void turtle_draw_circle(unsigned r);
 
 // Move the turtle forward
 int turtle_mv_forward(float n);
@@ -88,7 +83,7 @@ int set_pen_color(unsigned r, unsigned g, unsigned b);
 int set_screen_color(unsigned r, unsigned g, unsigned b);
 
 // Set the thickness of the pen
-int set_pen_thickness(float thickness);
+void set_pen_thickness(float thickness);
 
 // Raise up the pen
 void pen_up();
@@ -111,8 +106,11 @@ int init_GUI();
 // Release the memory of GUI elements
 void destroy_GUI();
 
-// Helper class, change the delay per command
+// Show debug message
 int show_debug_message(char const *msg);
+
+// Freeze the execution for s seconds
+void wait(unsigned s);
 
 // Defines number pi
 #define PI 3.14159265

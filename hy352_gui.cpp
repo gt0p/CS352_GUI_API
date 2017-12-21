@@ -1,8 +1,3 @@
-/*
-Course: CS-352
-last update: 16122017
-*/
-
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include "allegro5/allegro_image.h"
@@ -17,6 +12,7 @@ last update: 16122017
 
 #include <vector>
 #include <string>
+#include <utility>
 #include "./hy352_gui.h"
 
 #ifdef _WIN32
@@ -43,7 +39,7 @@ Color_pallete PEN_COLOR;
 const int SCREEN_W = 1024;
 const int SCREEN_H = 720;
 const float PIXELS_PER_STEP = 0.005;
-const int DELAY_BEFORE_TERMINATION = 6;
+const int DELAY_BEFORE_TERMINATION = 10;
 const int IMAGE_W = 30;
 const int IMAGE_H = 30;
 
@@ -122,91 +118,15 @@ void redraw_now()
 	redraw();
 }
 
-void calc_new_pos(bool forward)
+pair<float, float> get_new_pos()
 {
-	if (angle == 0)
-	{
-		if (forward)
-			turtle_y -= PIXELS_PER_STEP;
-		else
-			turtle_y += PIXELS_PER_STEP;
-	}
-	else if (angle > 0 && angle < 90)
-	{
-		if (forward)
-		{
-			turtle_y -= cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x += sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-		else
-		{
-			turtle_y += cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x -= sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-	}
-	else if (angle == 90)
-	{
-		if (forward)
-			turtle_x += PIXELS_PER_STEP;
-		else
-			turtle_x -= PIXELS_PER_STEP;
-	}
-	else if (angle > 90 && angle < 180)
-	{
-		if (forward)
-		{
-			turtle_y += -cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x += sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-		else
-		{
-			turtle_y -= -cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x -= sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-	}
-	else if (angle == 180)
-	{
-		if (forward)
-			turtle_y += PIXELS_PER_STEP;
-		else
-			turtle_y -= PIXELS_PER_STEP;
-	}
-	else if (angle > 180 && angle < 270)
-	{
-		if (forward)
-		{
-			turtle_y += -cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x += sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-		else
-		{
-			turtle_y -= -cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x -= sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-	}
-	else if (angle == 270)
-	{
-		if (forward)
-			turtle_x -= PIXELS_PER_STEP;
-		else
-			turtle_x += PIXELS_PER_STEP;
-	}
-	else if (angle > 270 && angle < 360)
-	{
-		if (forward)
-		{
-			turtle_y -= cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x += sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-		else
-		{
-			turtle_y += cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
-			turtle_x -= sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
-		}
-	}
+	float cosAngle = cos(degreesToRadians(angle)) * PIXELS_PER_STEP;
+	float sinAngle = sin(degreesToRadians(angle)) * PIXELS_PER_STEP;
+
+	return pair<float, float>(sinAngle, -(cosAngle));
 }
 
-int turtle_rotate(int degrees)
+void turtle_rotate(int degrees)
 {
 	if (degrees < 0)
 		degrees = 360 - (abs(degrees) % 360);
@@ -217,12 +137,11 @@ int turtle_rotate(int degrees)
 
 	redraw();
 
-	return 1;
+	return;
 }
 
-int turtle_draw_circle(unsigned radius)
+void turtle_draw_circle(unsigned radius)
 {
-
 	Point p;
 
 	p.x = turtle_x;
@@ -237,16 +156,23 @@ int turtle_draw_circle(unsigned radius)
 	path.push_back(c);
 	redraw_now();
 
-	return 1;
+	return;
 }
 
 int turtle_mv_forward(float steps)
 {
+	if (steps < 0)
+	{
+		fprintf(stderr, "Error: Number steps should be greater or equal than zero\n");
+		return -1;
+	}
+
 	int i = 0;
 	for (i = 0; i < (int)(steps * 100); ++i)
 	{
-
-		calc_new_pos(true);
+		pair<float, float> new_pos = get_new_pos();
+		turtle_x += new_pos.first;
+		turtle_y += new_pos.second;
 
 		Point s, e;
 
@@ -273,11 +199,18 @@ int turtle_mv_forward(float steps)
 
 int turtle_mv_backward(float steps)
 {
+	if (steps < 0)
+	{
+		fprintf(stderr, "Error: Number steps should be greater or equal than zero\n");
+		return -1;
+	}
+
 	int i = 0;
 	for (i = 0; i < (int)(steps * 100); ++i)
 	{
-
-		calc_new_pos(false);
+		pair<float, float> new_pos = get_new_pos();
+		turtle_x -= new_pos.first;
+		turtle_y -= new_pos.second;
 
 		Point s, e;
 
@@ -303,9 +236,9 @@ int turtle_mv_backward(float steps)
 
 int set_pen_color(unsigned r, unsigned g, unsigned b)
 {
-	if ((r < 0 || r > 255) || (g < 0 || g > 255) || (b < 0 || b > 255))
+	if (r > 255 || g > 255 || b > 255)
 	{
-		fprintf(stderr, "(r,g,b) values must be between 0 and 255");
+		fprintf(stderr, "Error: (r,g,b) values must be between 0 and 255\n");
 		return -1;
 	}
 	PEN_COLOR.red = r;
@@ -318,9 +251,9 @@ int set_pen_color(unsigned r, unsigned g, unsigned b)
 int set_screen_color(unsigned r, unsigned g, unsigned b)
 {
 
-	if ((r < 0 || r > 255) || (g < 0 || g > 255) || (b < 0 || b > 255))
+	if (r > 255 || g > 255 || b > 255)
 	{
-		fprintf(stderr, "(r,g,b) values must be between 0 and 255");
+		fprintf(stderr, "Error: (r,g,b) values must be between 0 and 255\n");
 		return -1;
 	}
 
@@ -333,10 +266,10 @@ int set_screen_color(unsigned r, unsigned g, unsigned b)
 	return 1;
 }
 
-int set_pen_thickness(float thickness)
+void set_pen_thickness(float thickness)
 {
 	PEN_THICKNESS = thickness;
-	return 1;
+	return;
 }
 
 void pen_up()
@@ -351,10 +284,9 @@ void pen_down()
 
 int turtle_go_to_position(unsigned x, unsigned y)
 {
-
-	if (x < 0 || y > SCREEN_W || y < 0 || y > SCREEN_H)
+	if (x > SCREEN_W || y > SCREEN_H)
 	{
-		fprintf(stderr, "set_xy: Coordinates x,y should be greater to 0 and less than window's dimentions!\n");
+		fprintf(stderr, "Error: Coordinates x,y should be greater to 0 and less than window's dimentions\n");
 		return -1;
 	}
 
@@ -387,19 +319,18 @@ int turtle_go_to_center()
 	int status = turtle_go_to_position(SCREEN_W / 2.0 - IMAGE_W / 2, SCREEN_H / 2.0 - IMAGE_H / 2);
 	if (status == -1)
 	{
-		fprintf(stderr, "turtle_go_to_center: Cannot move turtle to the center!\n");
+		fprintf(stderr, "Error: Cannot move turtle to the center!\n");
 		return -1;
 	}
-	else
-		return 1;
+
+	return 1;
 }
 
 int turtle_draw_label(char const *text)
 {
-
 	if (!text)
 	{
-		fprintf(stderr, "turtle_draw_label: Cannot draw text %s!\n", text);
+		fprintf(stderr, "Error: text %s, is not a valid string\n", text);
 		return -1;
 	}
 
@@ -514,21 +445,17 @@ int init_GUI()
 void destroy_GUI()
 {
 	redraw_now();
-	al_rest(10);
+	al_rest(DELAY_BEFORE_TERMINATION);
 	al_destroy_display(display);
 	al_destroy_event_queue(event_queue);
 }
 
 // EXTRA METHODS
 
-int wait(unsigned s)
+void wait(unsigned s)
 {
-	if (s < 0)
-	{
-		fprintf(stderr, "Delay per command must be greater than zero\n");
-		return -1;
-	}
 	Sleep(s);
+	return;
 }
 
 int show_debug_message(char const *msg)

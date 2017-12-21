@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 
 	set_screen_color(255, 255, 255);
 	set_pen_color(0, 0, 0);
-	set_pen_thickness(0.1);
+	set_pen_thickness(0.1f);
 
 	for (int i = 0; i < 360; i++)
 	{
