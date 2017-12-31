@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+
 #include "./hy352_gui.h"
 
 #ifdef _WIN32
@@ -221,7 +222,7 @@ int turtle_mv_backward(float steps)
 		e.y = turtle_y;
 
 		Line *l = new Line();
-		l->draw = true;
+		l->draw = IS_PEN_DOWN;
 		l->start = s;
 		l->end = e;
 		l->color = PEN_COLOR;
@@ -341,7 +342,9 @@ int turtle_draw_label(char const *text)
 
 	t->draw = IS_PEN_DOWN;
 	t->color = PEN_COLOR;
-	t->text = text;
+
+	t->text = new char[strlen(text) + 1]{};
+	strcpy(t->text, text);
 	path.push_back(t);
 
 	redraw_now();
