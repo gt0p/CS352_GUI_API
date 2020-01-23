@@ -1,4 +1,4 @@
-# CS352_GUI_API
+# CS352 GUI API for project
 API definition and implemention for using Allegro 5 library in course cs352 
 
 
